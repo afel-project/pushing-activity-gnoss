@@ -1,13 +1,10 @@
-var rdfType = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
-
-
 var resourceAnalitics = {
     config: function (type) {
         resource_id = $('input#recurso_id').val();
 
         analiticsTriples = [];
-        analiticsTriples.push(analitics.getTriple("actionType", type));
-        analiticsTriples.push(analitics.getTriple("resource_id", resource_id));
+        analiticsTriples.push(analitics.getTriple("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", type));
+        analiticsTriples.push(analitics.getTriple("http://rdfs.org/sioc/ns#Item", resource_id));
     },
     sendAnaliticsLoad: function () {
         var that = this;
@@ -28,7 +25,8 @@ var resourceAnalitics = {
     },
     resourceVisited: function () {
         this.config("resourceVisited");
-        var date = new Date($('input#inpt_serverTime').val());
+        //var date = new Date($('input#inpt_serverTime').val());
+        var date = analitics.getRealDate(new Date())
         var referer_url = document.referrer;
         analiticsTriples.push(analitics.getTriple("date", date));
         analiticsTriples.push(analitics.getTriple("referer_url", referer_url));
@@ -131,13 +129,13 @@ var searchAnalitics = {
 
 var shareAnalitics = {
     config: function (type) {
-        community = $('input#inpt_proyID').val();
+        //community = $('input#inpt_proyID').val();
         resource_id = $('input#recurso_id').val();
         date = analitics.getRealDate(new Date());
 
         analiticsTriples = [];
         analiticsTriples.push(analitics.getTriple("actionType", type));
-        analiticsTriples.push(analitics.getTriple("community", community));
+        //analiticsTriples.push(analitics.getTriple("community", community));
         analiticsTriples.push(analitics.getTriple("resource_id", resource_id));
         analiticsTriples.push(analitics.getTriple("date", date));;
     },
@@ -158,13 +156,13 @@ var shareAnalitics = {
 
 var voteAnalitics = {
     config: function (type) {
-        community = $('input#inpt_proyID').val();
+        //community = $('input#inpt_proyID').val();
         resource_id = $('input#recurso_id').val();
         date = analitics.getRealDate(new Date());
 
         analiticsTriples = [];
         analiticsTriples.push(analitics.getTriple("actionType", type));
-        analiticsTriples.push(analitics.getTriple("community", community));
+        //analiticsTriples.push(analitics.getTriple("community", community));
         analiticsTriples.push(analitics.getTriple("resource_id", resource_id));
         analiticsTriples.push(analitics.getTriple("date", date));;
     },
@@ -202,8 +200,8 @@ var analitics = {
         }
     },
     getTriple: function (property, value) {
-        var s = "<" + document.location.href + ">";
-        var p = property;
+        var s = "<" + document.location.origin + document.location.pathname + "###EventID###>";
+        var p = '<' + property + '>';
         if (property.indexOf("http") != 0) {
             p = " <http://gnoss.com/ontology.owl#" + property + ">";
         }
@@ -211,9 +209,11 @@ var analitics = {
         return s + p + o;
     },
     send: function (analiticsTriples) {
+        var community = $('input#inpt_proyID').val();
         var user_id = $('input#inpt_usuarioID').val();
         var cookie_user = analitics.getCookieIdentifier();
 
+        analiticsTriples.push(this.getTriple("project_id", community));
         analiticsTriples.push(this.getTriple("user_id", user_id));
         analiticsTriples.push(this.getTriple("cookie_user", cookie_user));
 
@@ -221,16 +221,26 @@ var analitics = {
         $.each(analiticsTriples, function (index, value) {
             listaTriples += value + "\n";
         });
-        $.post("http://data.afel-project.eu/api/dataset/testgnoss?api_key=548895478978", { rdf: listaTriples });
+		
+		var eventoID = this.guidGenerator();
+		listaTriples = listaTriples.replace(/###EventID###/gi, "?eventID=" + eventoID);
+		
+        $.post("http://data.afel-project.eu/api/dataset/testgnoss?key=d7549eab00c9dbfe77f5", { rdf: listaTriples });
     },
+	guidGenerator: function() {
+		var S4 = function () {
+			return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+		};
+		return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+	},
 	getRealDate: function (date) {
-	    if (diffHours != 0) {
+	    /*if (diffHours != 0) {
 	        date.setHours(date.getHours() - diffHoras);
-	    }
-	    return date;
+	    }*/
+	    return date.toISOString();
 	},
 	setDiffHours: function() {
-	    var fechaServidor = new Date($('#inpt_serverTime').val());
+	    /*var fechaServidor = new Date($('#inpt_serverTime').val());
 	    var fechaCliente = new Date();
 
 	    var diffMinutos = parseInt((fechaServidor.getTime() / (1000 * 60)) - (fechaCliente.getTime() / (1000 * 60)));
@@ -244,7 +254,7 @@ var analitics = {
 	        else {
 	            diffHoras = diffHoras - 1;
 	        }
-	    }
+	    }*/
 	},
 	setCookieIdentifier : function(cvalue) {
         var d = new Date();
