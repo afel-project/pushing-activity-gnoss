@@ -178,6 +178,8 @@ var analitics = {
     init: function () {
         this.checkCookieIdentifier();
         this.setDiffHours();
+		this.graph = $_GET("graph");
+		this.key = $_GET("key");
 
         body = $('body');
         if (body.hasClass('fichaComunidad')) {
@@ -213,7 +215,7 @@ var analitics = {
         var user_id = $('input#inpt_usuarioID').val();
         var cookie_user = analitics.getCookieIdentifier();
 
-        analiticsTriples.push(this.getTriple("project_id", community));
+        analiticsTriples.push(this.getTriple("community_id", community));
         analiticsTriples.push(this.getTriple("user_id", user_id));
         analiticsTriples.push(this.getTriple("cookie_user", cookie_user));
 
@@ -224,8 +226,9 @@ var analitics = {
 		
 		var eventoID = this.guidGenerator();
 		listaTriples = listaTriples.replace(/###EventID###/gi, "?eventID=" + eventoID);
-		
-        $.post("http://data.afel-project.eu/api/dataset/testgnoss?key=d7549eab00c9dbfe77f5", { rdf: listaTriples });
+		if(this.graph != null && this.graph != ""){
+			$.post("https://data.afel-project.eu/api/dataset/" + this.graph + "?key=" + this.key, { rdf: listaTriples });
+		}
     },
 	guidGenerator: function() {
 		var S4 = function () {
@@ -286,6 +289,7 @@ var analitics = {
 }
 
 var diffHours = 0;
+
 
 $(document).ready(function() {
     analitics.init();
