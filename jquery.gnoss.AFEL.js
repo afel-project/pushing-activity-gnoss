@@ -203,7 +203,7 @@ var analitics = {
     },
     getTriple: function (property, value) {
         var s = "<" + document.location.origin + document.location.pathname + "###EventID###>";
-        var p = '<' + property + '>';
+        var p = ' <' + property + '>';
         if (property.indexOf("http") != 0) {
             p = " <http://gnoss.com/ontology.owl#" + property + ">";
         }
